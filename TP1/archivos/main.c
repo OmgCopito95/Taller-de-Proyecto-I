@@ -83,6 +83,8 @@ void escribir_en_lcd(estado s)
 		lcd_sendData('D');
 		lcd_sendData('O');
 
+		apagar_led();
+
 		break;
 
 	case bloqueo: // le erro a la contraseña
@@ -110,6 +112,7 @@ void escribir_en_lcd(estado s)
 		lcd_sendData('T');
 		lcd_sendData('O');
 
+		encender_led();
 		break;
 	}
 }
