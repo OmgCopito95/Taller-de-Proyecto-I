@@ -1,4 +1,5 @@
 #include <stm32f103x6.h>
+#include "lcd.h"
 
 /*  variables del programa */
 
@@ -20,25 +21,102 @@ int nroDigito;					// variable para saber cuántos dígitos del total fueron ing
 extern unsigned char cumple;	// flag para saber si la secuencia se está ingresando de forma correcta
 int password[4] = {2, 5, 8, 0}; // contraseña de la cerradura
 
+
+void inicializar_pines_lcd(void);
+void escribir_en_lcd(estado s);
+/*
+void controlar_tiempo_ingreso(void);
+void controlar_tiempo_bloqueo(void);
+void controlar_secuencia(void);*/
+
 int main(void)
 {
+	// -------------- INIT LCD -------------- //
+	inicializar_pines_lcd();
+	lcd_init();
+	// -------------------------------------- //
 
 	while (1)
 	{
 
-		if ((tecla != 0xFF) || (fin_tiempo_bloqueo) || (ingresando_secuencia)) // si se presionó una tecla, finalizó el tiempo del estado actual o se estaba ingresando la secuencia
+		/*if ((tecla != 0xFF) || (fin_tiempo_bloqueo) || (ingresando_secuencia)) // si se presionó una tecla, finalizó el tiempo del estado actual o se estaba ingresando la secuencia
 			ex_state();
 		else
 			mostar_pantalla();
-		MEF_update(); //actualizo el estado de la MEF
+		MEF_update(); //actualizo el estado de la MEF*/
+		escribir_en_lcd(inicio);
 	}
 
 	return 0;
 }
 
+void inicializar_pines_lcd() // 8 entradas
+{
+	RCC->APB2ENR |= 0xFC;	 // Habilita clocks de Gpios
+	GPIOA->CRL = 0x33333333; // PA0-PA7 como salidas
+
+	GPIOB->CRL = 0X33344444; // PB7-PB5 como salidas
+}
+
+void escribir_en_lcd(estado s)
+{
+	switch (s)
+	{
+
+	case inicio: // muestra pantalla "introducir clave"
+		lcd_sendData('C');
+		lcd_sendData('L');
+		lcd_sendData('A');
+		lcd_sendData('V');
+		lcd_sendData('E');
+		lcd_sendData(':');
+
+		lcd_sendCommand(0xc0); // se posiciona en la linea de abajo
+		//lcd_sendCommand(0x80); // se posiciona en la linea de arriba
+
+		lcd_sendData('C');
+		lcd_sendData('E');
+		lcd_sendData('R');
+		lcd_sendData('R');
+		lcd_sendData('R');
+		lcd_sendData('A');
+		lcd_sendData('D');
+		lcd_sendData('O');
+
+		break;
+
+	case bloqueo: // le erro a la contraseña
+		lcd_sendCommand(0x80); // se posiciona en la linea de arriba
+
+		lcd_sendData('D');
+		lcd_sendData('E');
+		lcd_sendData('N');
+		lcd_sendData('E');
+		lcd_sendData('G');
+		lcd_sendData('A');
+		lcd_sendData('D');
+		lcd_sendData('O');
+
+		break;
+
+	case acceso: // le acerto a la contraseña
+		lcd_sendCommand(0x80); // se posiciona en la linea de arriba
+
+		lcd_sendData('A');
+		lcd_sendData('B');
+		lcd_sendData('I');
+		lcd_sendData('E');
+		lcd_sendData('R');
+		lcd_sendData('T');
+		lcd_sendData('O');
+
+		break;
+	}
+}
+/*
 void ex_state(void)
 { // verifica estado de la MEF y realiza tarea (correspondiente al estado actual)
-
+	//escribir_en_lcd(state);
 	switch (state)
 	{
 	case acceso: //si la cerradura está abierta
@@ -54,13 +132,12 @@ void ex_state(void)
 		break;
 
 	case inicio:
-		mostrar_pantalla();
+		escribir_en_lcd(state); 
 		break;
 	}
 }
 
-private
-void controlar_tiempo_ingreso()
+void controlar_tiempo_ingreso(void)
 {
 	if (seg < 5)
 	{				 //si no se terminó el tiempo del estado
@@ -74,8 +151,7 @@ void controlar_tiempo_ingreso()
 	}
 }
 
-private
-void controlar_tiempo_bloqueo()
+void controlar_tiempo_bloqueo(void)
 {
 	if (seg < 2)
 	{				 //si no se terminó el tiempo del estado
@@ -83,14 +159,13 @@ void controlar_tiempo_bloqueo()
 		seg = seg + 1;
 	}
 	else
-	{							//si el tiempofinalizó  TAL VEZ LO TIENE QUE HACER EL MEF_UPDATE
+	{							//si el tiempo finalizó  TAL VEZ LO TIENE QUE HACER EL MEF_UPDATE
 		fin_tiempo_bloqueo = 0; //reinicio el flag de tiempo
 		seg = 0;				//reinicio el contador de tiempo
 	}
 }
 
-private
-void controlar_secuencia()
+void controlar_secuencia(void)
 {
 	if (tecla != 255)
 	{						 //si hay una tecla presionada
@@ -102,7 +177,7 @@ void controlar_secuencia()
 		}
 	}
 }
-
+*/
 /*	switch(state){
 	
 		case principal: // muestra pantalla "introducir clave" 
