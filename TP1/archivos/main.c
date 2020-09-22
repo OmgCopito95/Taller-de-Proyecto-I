@@ -2,94 +2,107 @@
 
 /*  variables del programa */
 
-int seg; //variable de tiempo
-extern unsigned char tecla = 0xFF; // guarda la tecla presionada. Default=0xFF=NO DATA   
-typedef enum {acceso, bloqueo, ingresando, inicio}estado; // estados de la MEF
-extern estado state ; // estado actual
+int seg;						   //variable de tiempo
+extern unsigned char tecla = 0xFF; // guarda la tecla presionada. Default=0xFF=NO DATA
+typedef enum
+{
+	acceso,
+	bloqueo,
+	ingresando,
+	inicio
+} estado;			 // estados de la MEF
+extern estado state; // estado actual
 
-extern unsigned char fin_tiempo_bloqueo; // flag de tiempo de bloqueo por contraseña incorrecta
+extern unsigned char fin_tiempo_bloqueo;   // flag de tiempo de bloqueo por contraseña incorrecta
 extern unsigned char ingresando_secuencia; // flag para determinar si se está ingresando la secuencia de números
 
-int nroDigito; // variable para saber cuántos dígitos del total fueron ingresados 
-extern unsigned char cumple; // flag para saber si la secuencia se está ingresando de forma correcta
-int password  [4] = {2,5,8,0}; // contraseña de la cerradura
+int nroDigito;					// variable para saber cuántos dígitos del total fueron ingresados
+extern unsigned char cumple;	// flag para saber si la secuencia se está ingresando de forma correcta
+int password[4] = {2, 5, 8, 0}; // contraseña de la cerradura
 
+int main(void)
+{
 
- 
+	while (1)
+	{
 
+		if ((tecla != 0xFF) || (fin_tiempo_bloqueo) || (ingresando_secuencia)) // si se presionó una tecla, finalizó el tiempo del estado actual o se estaba ingresando la secuencia
+			ex_state();
+		else
+			mostar_pantalla();
+		MEF_update(); //actualizo el estado de la MEF
+	}
 
-int main (void) { 
-   
-   while (1) {
+	return 0;
+}
 
-      if (( tecla != 0xFF ) || ( fin_tiempo_bloqueo )  || ( ingresando_secuencia ))  // si se presionó una tecla, finalizó el tiempo del estado actual o se estaba ingresando la secuencia
-	    ex_state();
-      else
-	    mostar_pantalla();
-      MEF_update();    //actualizo el estado de la MEF
+void ex_state(void)
+{ // verifica estado de la MEF y realiza tarea (correspondiente al estado actual)
 
-    }
+	switch (state)
+	{
+	case acceso: //si la cerradura está abierta
+		controlar_tiempo_ingreso();
+		break;
 
-      return 0;
- }   
+	case bloqueo: //si la cerradura está cerrada
+		controlar_tiempo_bloqueo();
+		break;
 
- 
- void ex_state(void){ // verifica estado de la MEF y realiza tarea (correspondiente al estado actual)
-    
-    
-    switch (state){
-       case acceso:  //si la cerradura está abierta
-	  controlar_tiempo_ingreso();	 
-       break;
-	  
-       case bloqueo: //si la cerradura está cerrada
-	    controlar_tiempo_bloqueo();
-       break;
-       
-       case ingresando:  //si se está ingresando una contraseña
-	     controlar_secuencia();
-       break;
-       
-       case inicio:
-	     mostrar_pantalla();
-       break;
-       
-   } 
-} 
-    
-   private void controlar_tiempo_ingreso (){
-      if (seg<5){   //si no se terminó el tiempo del estado
-	   delay(1000); //cuento un segundo (ESTA FUNCIÖN SE PUEDE CAMBIAR)
-	   seg= seg +1;
-	 }
-      else { //si el tiempofinalizó  TAL VEZ LO TIENE QUE HACER EL MEF_UPDATE
-	 fin_tiempo_bloqueo= 0; //reinicio el flag de tiempo
-	 seg= 0; //reinicio el contador de tiempo
-      }
-   }
-      
-    private void controlar_tiempo_bloqueo (){
-      if (seg<2){   //si no se terminó el tiempo del estado
-	   delay(1000); //cuento un segundo (ESTA FUNCIÖN SE PUEDE CAMBIAR)
-	   seg= seg +1;
-	 }
-      else { //si el tiempofinalizó  TAL VEZ LO TIENE QUE HACER EL MEF_UPDATE
-	 fin_tiempo_bloqueo= 0; //reinicio el flag de tiempo
-	 seg= 0; //reinicio el contador de tiempo
-       }
-    }
+	case ingresando: //si se está ingresando una contraseña
+		controlar_secuencia();
+		break;
 
-    private void controlar_secuencia (){
-		if (tecla != 255){  //si hay una tecla presionada
-	   keypad_scan(&tecla); //se recibe la tecla
-	   if ((nroDigito<4) && (cumple)){   //si no se completó la secuencia y no se presionó una tecla incorrecta
-	      cumple = ( (password [ nroDigito ]) == tecla); //si el dígito actual coincide con el de la secuencia
-	      nroDigito=nroDigito + 1; //se cuenta la tecla presionada
-	    }	    
-	  }
-     }
+	case inicio:
+		mostrar_pantalla();
+		break;
+	}
+}
 
-	
+private
+void controlar_tiempo_ingreso()
+{
+	if (seg < 5)
+	{				 //si no se terminó el tiempo del estado
+		delay(1000); //cuento un segundo (ESTA FUNCIÖN SE PUEDE CAMBIAR)
+		seg = seg + 1;
+	}
+	else
+	{							//si el tiempofinalizó  TAL VEZ LO TIENE QUE HACER EL MEF_UPDATE
+		fin_tiempo_bloqueo = 0; //reinicio el flag de tiempo
+		seg = 0;				//reinicio el contador de tiempo
+	}
+}
+
+private
+void controlar_tiempo_bloqueo()
+{
+	if (seg < 2)
+	{				 //si no se terminó el tiempo del estado
+		delay(1000); //cuento un segundo (ESTA FUNCIÖN SE PUEDE CAMBIAR)
+		seg = seg + 1;
+	}
+	else
+	{							//si el tiempofinalizó  TAL VEZ LO TIENE QUE HACER EL MEF_UPDATE
+		fin_tiempo_bloqueo = 0; //reinicio el flag de tiempo
+		seg = 0;				//reinicio el contador de tiempo
+	}
+}
+
+private
+void controlar_secuencia()
+{
+	if (tecla != 255)
+	{						 //si hay una tecla presionada
+		keypad_scan(&tecla); //se recibe la tecla
+		if ((nroDigito < 4) && (cumple))
+		{											   //si no se completó la secuencia y no se presionó una tecla incorrecta
+			cumple = ((password[nroDigito]) == tecla); //si el dígito actual coincide con el de la secuencia
+			nroDigito = nroDigito + 1;				   //se cuenta la tecla presionada
+		}
+	}
+}
+
 /*	switch(state){
 	
 		case principal: // muestra pantalla "introducir clave" 
@@ -135,11 +148,11 @@ int main (void) {
 			break;
 		case alarm: // visualizacion de la alarma (Activada - Desactivada)
 			LCD_pos_xy(0,1); // me posiciono en el renglon de abajo
-		*/							
-			/*if(alarm_state == 0)
+		*/
+/*if(alarm_state == 0)
 				LCD_write_string("Desactivada");
 			else LCD_write_string("Activada   ");*/
-		/*	
+/*	
 			ShowTimeAlarm(); // Muestro la hora de la alarma					
 			break;
 		case alarm_sound: // visualizacion de alarma sonando en pantalla principal.
@@ -154,11 +167,12 @@ int main (void) {
 				LCD_write_string("                ");
 				LCD_cursor_blink_off(); 
 				titilo = 0;
-			} */			
-			/*if(tecla == '#'){ // si la quiere desactivar
+			} */
+/*if(tecla == '#'){ // si la quiere desactivar
 				alarm_state = 0;
 				state = principal;
-			}*/ // LO HAGO EN LA MEF
-		/*	break;
+			}*/
+// LO HAGO EN LA MEF
+/*	break;
 		*/
-		//	}
+//	}
